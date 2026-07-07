@@ -182,7 +182,7 @@ echo -e "\nService status:"
 if systemctl is-active --quiet ntpd-rs; then
     echo "ntpd-rs is active and running."
 else
-    echo "ntpd-rs failed to start. Check: journalctl -u ntpd-rs -n 50"
+    echo "ntpd-rs failed to start. Check: sudo journalctl -u ntpd-rs -n 50"
 fi
 
 echo ""
@@ -190,7 +190,7 @@ echo "────────────────────────�
 echo " Configuration"
 echo "────────────────────────────────────────────────────"
 echo "Edit the configuration file to set your preferred servers:"
-echo "    ${EDITOR:-nano} /etc/ntpd-rs/ntp.toml"
+echo "    sudo ${EDITOR:-nano} /etc/ntpd-rs/ntp.toml"
 echo ""
 echo "After editing, restart the daemon:"
 echo "    sudo systemctl restart ntpd-rs"
