@@ -40,6 +40,10 @@ Optional dry-run:
 
     sudo ./ntp-updater.sh <url> --dry-run
 
+Security Note
+-------------
+The script accepts any URL you supply – it does not verify the cryptographic integrity or authenticity of the downloaded package. Always copy the URL directly from the official `ntpd-rs` releases page and, if you need a higher security guarantee, verify the file’s SHA256 checksum against the published release checksums before running the script.
+
 What the Script Does
 --------------------
 1.  Checks for an existing `ntpd-rs` installation and displays the current version.
