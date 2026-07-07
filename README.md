@@ -30,12 +30,14 @@ Requirements
 
 Usage
 -----
-1.  Visit the [ntpd-rs releases page](https://github.com/pendulum-project/ntpd-rs/releases).
-2.  Locate the desired release version.
-3.  Copy the URL of the `.deb` file that matches your system architecture:
+1.  Pull the script: `https://github.com/upmcplanetracker/ntpd-rs-updater-ubuntu/blob/main/ntp-updater.sh`
+2.  Made it executable: `sudo chmod +x ./ntp-updater.sh`
+3.  Visit the [ntpd-rs releases page](https://github.com/pendulum-project/ntpd-rs/releases).
+4.  Locate the desired release version.
+5.  Copy the URL of the `.deb` file that matches your system architecture:
     *   `amd64` for x86-64 systems.
     *   `arm64` for ARM64 systems (e.g., Raspberry Pi 4, AWS Graviton).
-4.  Run the script as root:
+6.  Run the script as root:
     
         sudo ./ntp-updater.sh https://github.com/pendulum-project/ntpd-rs/releases/download/v1.9.0/ntpd-rs_1.9.0-1_amd64.deb
     
