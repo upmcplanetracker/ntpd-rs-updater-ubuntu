@@ -1,3 +1,5 @@
+**ntpd-rs Updater for Ubuntu**
+
 Install or upgrade `ntpd-rs` on Ubuntu (targeting 26.04 and later) using a `.deb` package from the official GitHub releases. It safely displaces any other active time daemon (`chrony`, `systemd-timesyncd`, `ntp`, `ntpsec`) and ensures `ntpd-rs` is the sole NTP service.
 
 Background
