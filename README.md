@@ -7,7 +7,10 @@ Background
 
 Features
 --------
-*   Downloads and validates the `.deb` package (checks architecture and integrity).
+*   Downloads and performs basic safety checks on the .deb package:
+    *   Verifies the file is a valid Debian package.
+    *   Ensures its declared architecture matches the current system.
+    *   No cryptographic verification is performed. The script does not check PGP signatures, checksums, or the origin of the downloaded file. However this `README.md` shows you how to pull the `.deb`             from the canonical github source.
 *   Disables and purges conflicting time daemons:
     *   `chrony`, `ntp`, `ntpsec` – removed via `apt-get purge`.
     *   `systemd-timesyncd` – stopped, disabled, and masked (it is part of systemd and cannot be purged).
