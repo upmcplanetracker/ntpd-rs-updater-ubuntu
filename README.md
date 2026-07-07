@@ -6,7 +6,7 @@ Install or upgrade `ntpd-rs` on Ubuntu (targeting 26.04 and later) using a `.deb
 Background
 ----------
 *   Canonical plans to replace `chrony` with `ntpd-rs` as the default time synchronisation daemon in **Ubuntu 27.04**, aligning with a move toward Rust-based system utilities.
-*   The `ntpd-rs` package in the Ubuntu repositories may be outdated; this script always pulls the latest (or a specific) upstream Ubuntu `.deb` release directly from [pendulum-project/ntpd-rs](https://github.com/pendulum-project/ntpd-rs).
+*   The `ntpd-rs` package in the **Ubuntu 26.04** repositories (1.7.0) are outdated; this script always pulls the latest (or a specific) upstream Ubuntu `.deb` release directly from [pendulum-project/ntpd-rs](https://github.com/pendulum-project/ntpd-rs).
 
 Features
 --------
@@ -37,6 +37,7 @@ Usage
 5.  Copy the URL of the `.deb` file that matches your system architecture:
     *   `amd64` for x86-64 systems.
     *   `arm64` for ARM64 systems (e.g., Raspberry Pi 4, AWS Graviton).
+    *   Example - `https://github.com/pendulum-project/ntpd-rs/releases/download/v1.9.0/ntpd-rs_1.9.0-1_amd64.deb` will pull the amd64 1.9.0 version.
 6.  Run the script as root:
     
         sudo ./ntp-updater.sh https://github.com/pendulum-project/ntpd-rs/releases/download/v1.9.0/ntpd-rs_1.9.0-1_amd64.deb
@@ -71,17 +72,22 @@ Restart the daemon to apply changes:
     sudo systemctl restart ntpd-rs
 
 Check `ntpd-rs` version:
-    `ntp-ctl -v`
+
+    ntp-ctl -v
 
 Check synchronisation status:
 
     ntp-ctl status
 
+Validate changes to the configuration file:
+    
+    ntp-ctl validate
+
 Notes
 -----
 *   Running the script with the same version already installed is safe – it will not reinstall the package but will still ensure all competing services remain disabled. This helps defend against an Ubuntu system update accidentally re‑enabling another time daemon.
 *   The script removes configuration files of the displaced daemons (e.g., `/etc/chrony/chrony.conf`). If you need those, back them up first.
-*   Orphaned dependencies from removed daemons are **not** automatically removed. The script prints a reminder to manually run `apt-get autoremove --purge` after reviewing the list of packages to be removed.
+*   Orphaned dependencies from removed daemons are **not** automatically removed. The script prints a reminder to manually run `sudo apt-get autoremove --purge` after reviewing the list of packages to be removed.
 
 License
 -------
