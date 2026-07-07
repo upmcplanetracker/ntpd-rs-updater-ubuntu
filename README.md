@@ -30,7 +30,7 @@ Requirements
 
 Usage
 -----
-1.  Pull the script: `wget -O ntp-updater.sh https://raw.githubusercontent.com/upmcplanetracker/ntpd-rs-updater-ubuntu/main/ntp-updater.sh`
+1.  Pull the script: `wget https://raw.githubusercontent.com/upmcplanetracker/ntpd-rs-updater-ubuntu/main/ntp-updater.sh`
 2.  Made it executable: `chmod +x ./ntp-updater.sh`
 3.  Visit the [ntpd-rs releases page](https://github.com/pendulum-project/ntpd-rs/releases).
 4.  Locate the desired release version.
