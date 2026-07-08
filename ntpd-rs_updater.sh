@@ -104,17 +104,34 @@ download_file() {
 }
 
 # Check for apt lock
+# Check for apt lock with a retry mechanism
 check_apt_lock() {
+    local max_retries=5
+    local count=0
     local lock_files=("/var/lib/dpkg/lock" "/var/lib/apt/lists/lock" "/var/cache/apt/archives/lock")
-    for lock in "${lock_files[@]}"; do
-        if [[ -f "$lock" ]]; then
-            # Check if a process holds the lock
-            if lsof "$lock" &>/dev/null || pgrep -f "apt|dpkg" &>/dev/null; then
-                echo "Error: Another apt/dpkg process appears to be running. Please wait and try again."
-                exit 1
+
+    while [ $count -lt $max_retries ]; do
+        local locked=0
+        for lock in "${lock_files[@]}"; do
+            if [[ -f "$lock" ]]; then
+                if lsof "$lock" &>/dev/null || pgrep -x "apt|dpkg" &>/dev/null; then
+                    locked=1
+                    break
+                fi
             fi
+        done
+
+        if [ $locked -eq 0 ]; then
+            return 0
         fi
+
+        echo "Apt/dpkg lock detected. Retrying in 5 seconds... ($((count+1))/$max_retries)"
+        sleep 5
+        count=$((count + 1))
     done
+
+    echo "Error: Timed out waiting for apt/dpkg lock. Please close other package managers and try again."
+    exit 1
 }
 
 # Confirmation for purging
