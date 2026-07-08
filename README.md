@@ -32,9 +32,9 @@ Install or upgrade `ntpd-rs` on Ubuntu (targeting 26.04 and later) using a `.deb
 ## Usage
 
 1. Pull the script:  
-   `wget https://raw.githubusercontent.com/upmcplanetracker/ntpd-rs-updater-ubuntu/main/ntp-updater.sh`
+   `wget https://raw.githubusercontent.com/upmcplanetracker/ntpd-rs-updater-ubuntu/main/ntpd-rs_updater.sh`
 2. Make it executable:  
-   `chmod +x ./ntp-updater.sh`
+   `chmod +x ./ntpd-rs_updater.sh`
 3. Visit the [ntpd-rs releases page](https://github.com/pendulum-project/ntpd-rs/releases).
 4. Locate the desired release version.
 5. Copy the URL of the `.deb` file that matches your system architecture:
@@ -42,16 +42,16 @@ Install or upgrade `ntpd-rs` on Ubuntu (targeting 26.04 and later) using a `.deb
     - `arm64` for ARM64 systems (e.g., Raspberry Pi 4, AWS Graviton).
     - Example: `https://github.com/pendulum-project/ntpd-rs/releases/download/v1.9.0/ntpd-rs_1.9.0-1_amd64.deb`
 6. Run the script as root (it will ask for confirmation before purging other services):  
-   `sudo ./ntp-updater.sh https://github.com/pendulum-project/ntpd-rs/releases/download/v1.9.0/ntpd-rs_1.9.0-1_amd64.deb`
+   `sudo ./ntpd-rs_updater.sh https://github.com/pendulum-project/ntpd-rs/releases/download/v1.9.0/ntpd-rs_1.9.0-1_amd64.deb`
 
 Optional: skip the confirmation prompt with `--force` (use with caution):  
-`sudo ./ntp-updater.sh <url> --force`
+`sudo ./ntpd-rs_updater.sh <url> --force`
 
 Optional dry-run (shows actions without making changes):  
-`sudo ./ntp-updater.sh <url> --dry-run`
+`sudo ./ntpd-rs_updater.sh <url> --dry-run`
 
 Optional SHA256 verification (recommended for security):  
-`sudo ./ntp-updater.sh <url> --sha256 <expected-hash>`
+`sudo ./ntpd-rs_updater.sh <url> --sha256 <expected-hash>`
 
 ## Security Note
 
