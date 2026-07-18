@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 
 set -euo pipefail
+export DEBIAN_FRONTEND=noninteractive
+
 
 SCRIPT_NAME="$(basename "$0")"
 DRY_RUN=0
@@ -20,7 +22,7 @@ while [[ $# -gt 0 ]]; do
             shift
             ;;
         --sha256)
-            if [[ -z "$2" || "$2" == --* ]]; then
+            if [[ -z "${2:-}" || "$2" == --* ]]; then
                 echo "Error: --sha256 requires a hash argument."
                 exit 1
             fi
@@ -41,6 +43,11 @@ Example:
 EOF
             exit 0
             ;;
+        --*)
+            echo "Error: Unknown option: $1"
+            echo "Run '${SCRIPT_NAME} --help' for usage."
+            exit 1
+            ;;
         *)
             if [[ -z "$DEB_URL" ]]; then
                 DEB_URL="$1"
@@ -57,6 +64,12 @@ done
 if [[ -z "$DEB_URL" ]]; then
     echo "Error: Missing package URL."
     echo "Usage: ${SCRIPT_NAME} <url> [--dry-run] [--force] [--sha256 <hash>]"
+    exit 1
+fi
+
+# Validate SHA256 format if provided
+if [[ -n "$SHA256_EXPECTED" && ! "$SHA256_EXPECTED" =~ ^[a-fA-F0-9]{64}$ ]]; then
+    echo "Error: --sha256 requires a valid 64-character hex SHA256 hash."
     exit 1
 fi
 
@@ -89,6 +102,7 @@ run() {
 for tool in wget curl dpkg-deb; do
     if ! command -v "$tool" &>/dev/null; then
         echo "Error: $tool is not installed. Please install it and try again."
+        echo "Note: On minimal systems you may also need fuser (from psmisc) or procps."
         exit 1
     fi
 done
@@ -97,9 +111,9 @@ done
 download_file() {
     local url="$1" output="$2"
     if command -v wget &>/dev/null; then
-        wget -q -O "$output" "$url"
+        wget -q --show-progress -O "$output" "$url"
     else
-        curl -s -o "$output" "$url"
+        curl -fsSL -o "$output" "$url"
     fi
 }
 
@@ -108,13 +122,13 @@ download_file() {
 check_apt_lock() {
     local max_retries=5
     local count=0
-    local lock_files=("/var/lib/dpkg/lock" "/var/lib/apt/lists/lock" "/var/cache/apt/archives/lock")
+    local lock_files=("/var/lib/dpkg/lock-frontend" "/var/lib/dpkg/lock" "/var/lib/apt/lists/lock" "/var/cache/apt/archives/lock")
 
     while [ $count -lt $max_retries ]; do
         local locked=0
         for lock in "${lock_files[@]}"; do
             if [[ -f "$lock" ]]; then
-                if lsof "$lock" &>/dev/null || pgrep -x "apt|dpkg" &>/dev/null; then
+                if fuser "$lock" &>/dev/null || pgrep -E "^(apt|dpkg)" &>/dev/null; then
                     locked=1
                     break
                 fi
@@ -136,7 +150,7 @@ check_apt_lock() {
 
 # Confirmation for purging
 confirm_purge() {
-    if [[ "$FORCE" -eq 1 ]] || [[ "$DRY_RUN" -eq 1 ]]; then
+    if [[ "$FORCE" -eq 1 ]] || [[ "$DRY_RUN" -eq 1 ]] || [[ ! -t 0 ]]; then
         return 0
     fi
     echo "WARNING: This script will purge conflicting time daemons (chrony, ntp, ntpsec) and mask systemd-timesyncd."
@@ -144,6 +158,10 @@ confirm_purge() {
     read -p "Proceed? (y/N) " -n 1 -r
     echo
     if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        if [[ -z "$REPLY" ]]; then
+            echo "Aborted (no response)."
+            exit 0
+        fi
         echo "Aborted by user."
         exit 0
     fi
@@ -153,18 +171,19 @@ confirm_purge() {
 TEMP_DIR="$(mktemp -d)"
 trap 'rm -rf "$TEMP_DIR"' EXIT
 DEB_FILE="${TEMP_DIR}/ntpd-rs_latest.deb"
+PURGE_FOUND=0
+
+# Helper: get installed version of a package
+get_pkg_version() {
+    dpkg-query -W -f='${Version}' "$1" 2>/dev/null || echo "not installed"
+}
 
 echo "=================================================="
 echo " ${SCRIPT_NAME} — ntpd-rs Update/Installation Utility"
 echo "=================================================="
 
 # Get current version
-CURRENT_STATUS="$(dpkg-query -W -f='${Status}' ntpd-rs 2>/dev/null || true)"
-if grep -q "install ok installed" <<<"$CURRENT_STATUS"; then
-    OLD_VER="$(dpkg-query -W -f='${Version}' ntpd-rs 2>/dev/null)"
-else
-    OLD_VER="not installed"
-fi
+OLD_VER="$(get_pkg_version ntpd-rs)"
 echo "Currently installed ntpd-rs version: ${OLD_VER}"
 
 # Check and purge conflicting daemons
@@ -175,6 +194,7 @@ for daemon in "${CONFLICTING_DAEMONS[@]}"; do
     case "$STATE" in
         "install ok installed")
             echo "   -> $daemon is installed and active. Neutralizing (config files will be purged)..."
+            PURGE_FOUND=1
             if [[ "$DRY_RUN" -eq 0 ]]; then
                 systemctl stop "$daemon" 2>/dev/null || true
                 systemctl mask "$daemon" 2>/dev/null || true
@@ -185,6 +205,7 @@ for daemon in "${CONFLICTING_DAEMONS[@]}"; do
             ;;
         *"config-files"*|*"deinstall"*)
             echo "   -> $daemon has residual config. Purging..."
+            PURGE_FOUND=1
             if [[ "$DRY_RUN" -eq 0 ]]; then
                 apt-get purge -y "$daemon"
             else
@@ -196,6 +217,13 @@ for daemon in "${CONFLICTING_DAEMONS[@]}"; do
             ;;
     esac
 done
+
+# Only prompt if we actually found something to purge
+if [[ "$PURGE_FOUND" -eq 0 ]]; then
+    FORCE=1
+fi
+
+confirm_purge
 
 echo "Neutralizing systemd-timesyncd (bundled with systemd, not dpkg-purgeable)..."
 if [[ "$DRY_RUN" -eq 0 ]]; then
@@ -252,9 +280,9 @@ fi
 
 echo "Installing/upgrading ntpd-rs..."
 if [[ "$DRY_RUN" -eq 0 ]]; then
-    if ! apt-get install -y "$DEB_FILE"; then
+    if ! apt-get install --no-install-recommends -y "$DEB_FILE"; then
         echo "Initial install failed, attempting dependency fix-up..."
-        apt-get install -f -y
+        apt-get install --no-install-recommends -f -y
         apt-get install -y "$DEB_FILE"
     fi
 else
@@ -279,18 +307,13 @@ if [[ "$DRY_RUN" -eq 1 ]]; then
     exit 0
 fi
 
-# Final version
-FINAL_VER="not installed"
-FINAL_STATUS="$(dpkg-query -W -f='${Status}' ntpd-rs 2>/dev/null || true)"
-if grep -q "install ok installed" <<<"$FINAL_STATUS"; then
-    FINAL_VER="$(dpkg-query -W -f='${Version}' ntpd-rs 2>/dev/null)"
-fi
+FINAL_VER="$(get_pkg_version ntpd-rs)"
 echo "Version: ${OLD_VER} -> ${FINAL_VER}"
 
 # Locate binary
 BIN_PATH=""
 for candidate in ntpd-rsd ntpd-rs; do
-    MATCH="$(dpkg -L ntpd-rs 2>/dev/null | grep -E "/s?bin/${candidate}\$" | head -n1 || echo "")"
+    MATCH="$(dpkg -L ntpd-rs 2>/dev/null | grep -E "/s?bin/${candidate}$" | head -n1 || echo "")"
     if [[ -n "$MATCH" ]]; then
         BIN_PATH="$MATCH"
         break
@@ -318,16 +341,20 @@ echo ""
 echo "────────────────────────────────────────────────────"
 echo " Configuration"
 echo "────────────────────────────────────────────────────"
-echo "Edit the configuration file to set your preferred servers:"
-echo "    sudo ${EDITOR:-nano} /etc/ntpd-rs/ntp.toml"
-echo ""
-echo "After editing, restart the daemon:"
-echo "    sudo systemctl restart ntpd-rs"
-echo ""
-echo "To see current synchronization status:"
-echo "    ntp-ctl status"
-echo "To validate changes to the configuration file:"
-echo "    ntp-ctl validate"
+if command -v ntp-ctl &>/dev/null; then
+    echo "Edit the configuration file to set your preferred servers:"
+    echo "    sudo ${EDITOR:-nano} /etc/ntpd-rs/ntp.toml"
+    echo ""
+    echo "After editing, restart the daemon:"
+    echo "    sudo systemctl restart ntpd-rs"
+    echo ""
+    echo "To see current synchronization status:"
+    echo "    ntp-ctl status"
+    echo "To validate changes to the configuration file:"
+    echo "    ntp-ctl validate"
+else
+    echo "ntp-ctl not found in PATH. Check the package documentation for configuration."
+fi
 echo "────────────────────────────────────────────────────"
 
 echo ""
