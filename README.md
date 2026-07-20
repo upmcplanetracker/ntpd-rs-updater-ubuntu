@@ -34,9 +34,9 @@ Install or upgrade `ntpd-rs` on Ubuntu (targeting 26.04 and later) using a `.deb
 ## Usage
 
 1. Pull the script:  
-   `wget https://raw.githubusercontent.com/upmcplanetracker/ntpd-rs-updater-ubuntu/main/ntpd-rs.sh`
+   `wget https://raw.githubusercontent.com/upmcplanetracker/ntpd-rs-updater-ubuntu/main/ntpd-rs`
 2. Make it executable:  
-   `chmod +x ./ntpd-rs.sh`
+   `chmod +x ./ntpd-rs`
 3. Visit the [ntpd-rs releases page](https://github.com/pendulum-project/ntpd-rs/releases).
 4. Locate the desired release version.
 5. Copy the URL of the `.deb` file that matches your system architecture:
@@ -44,19 +44,19 @@ Install or upgrade `ntpd-rs` on Ubuntu (targeting 26.04 and later) using a `.deb
     - `arm64` for ARM64 systems (e.g., Raspberry Pi 4, AWS Graviton).
     - Example: `https://github.com/pendulum-project/ntpd-rs/releases/download/v1.9.0/ntpd-rs_1.9.0-1_amd64.deb`
 6. Run the script as root (it will ask for confirmation before removing other services):  
-   `sudo ./ntpd-rs.sh https://github.com/pendulum-project/ntpd-rs/releases/download/v1.9.0/ntpd-rs_1.9.0-1_amd64.deb`
+   `sudo ./ntpd-rs https://github.com/pendulum-project/ntpd-rs/releases/download/v1.9.0/ntpd-rs_1.9.0-1_amd64.deb`
 
 Optional: skip the confirmation prompt with `--force` (use with caution):  
-`sudo ./ntpd-rs.sh &lt;url&gt; --force`
+`sudo ./ntpd-rs <url> --force`
 
 Optional dry-run (shows actions without making changes):  
-`sudo ./ntpd-rs.sh &lt;url&gt; --dry-run`
+`sudo ./ntpd-rs <url> --dry-run`
 
 Optional SHA256 verification (recommended for security):  
-`sudo ./ntpd-rs.sh &lt;url&gt; --sha256 &lt;expected-hash&gt;`
+`sudo ./ntpd-rs <url> --sha256 <expected-hash>
 
 Optional verbose output (shows all commands being executed):  
-`sudo ./ntpd-rs.sh &lt;url&gt; --verbose`
+`sudo ./ntpd-rs <url> --verbose`
 
 ## Security Note
 
@@ -64,7 +64,7 @@ The script accepts any URL you supply – it does **not** verify the cryptograph
 
 1. Download the `.deb` manually.
 2. Compute its SHA256: `sha256sum ntpd-rs_*.deb`
-3. Compare with the published checksum (if provided) and then run the script with `--sha256 &lt;hash&gt;`.
+3. Compare with the published checksum (if provided) and then run the script with `--sha256 <hash>`.
 
 ## What the Script Does
 
@@ -84,17 +84,17 @@ The script accepts any URL you supply – it does **not** verify the cryptograph
 Edit the configuration file to add your preferred NTP servers:  
 `sudo nano /etc/ntpd-rs/ntp.toml`
 
+Validate changes to the configuration file:  
+`ntp-ctl validate`
+
 Restart the daemon to apply changes:  
 `sudo systemctl restart ntpd-rs`
 
 Check `ntpd-rs` version:  
-`ntp-ctl -v`
+`ntp-ctl -v` or `ntp-ctl --version`
 
 Check synchronization status:  
 `ntp-ctl status`
-
-Validate changes to the configuration file:  
-`ntp-ctl validate`
 
 ## Troubleshooting
 
