@@ -14,7 +14,7 @@ Install or upgrade `ntpd-rs` on Ubuntu (targeting 26.04 and later) using a `.deb
     - Ensures its declared architecture matches the current system.
     - Optionally verifies the SHA256 checksum if you provide it (`--sha256`).
 - Disables conflicting time daemons:
-    - `chrony`, `ntp`, `ntpsec`, `openntpd`, `linuxptp` are stopped, masked, and removed via `apt-get remove` (after confirmation unless `--force` is used). `remove` is used instead of `purge` to avoid triggering Ubuntu's dependency resolver to auto-install a replacement timekeeper.
+    - `chrony`, `ntp`, `ntpsec`, `openntpd`, `linuxptp` are stopped, masked, and removed via `apt-get remove` (after confirmation unless `--force` is used). `remove` is used instead of `purge` to avoid triggering Ubuntu's dependency resolver to auto-install a replacement timekeeper (i.e., avoids Ubuntu timekeeper whack-a-mole).
     - Residual configs of removed packages are purged.
     - `systemd-timesyncd` is stopped, disabled, and masked (it is part of systemd and cannot be purged).
     - `ntpdate`, `tlsdate` are removed if present.
