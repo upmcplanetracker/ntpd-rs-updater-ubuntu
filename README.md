@@ -5,7 +5,7 @@ Install or upgrade `ntpd-rs` on Ubuntu (targeting 26.04 and later) using a `.deb
 ## Background
 
 - Canonical plans to replace `chrony` with `ntpd-rs` as the default time synchronization daemon in **Ubuntu 27.04**, aligning with a move toward Rust-based system utilities. Like `chrony`, `ntpd-rs` does both NTS and NTP, but is more memory safe being written in Rust vs. `chrony` in C.
-- The `ntpd-rs` package in the **Ubuntu 26.04** repositories (1.7.0) is outdated; this script always pulls the latest (or a specific) upstream Ubuntu `.deb` release directly from [pendulum-project/ntpd-rs](https://github.com/pendulum-project/ntpd-rs).
+- The `ntpd-rs` package in the **Ubuntu 26.04** repositories (1.7.0) is outdated; this script pulls a specific upstream Ubuntu `.deb` release directly from [pendulum-project/ntpd-rs](https://github.com/pendulum-project/ntpd-rs). The assumption is that you want to upgrade to a newer version, but conceivably this script could let you change to any version.
 
 ## Features
 
