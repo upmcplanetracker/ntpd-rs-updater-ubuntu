@@ -40,7 +40,7 @@ Install or upgrade `ntpd-rs` on Ubuntu (targeting 26.04 and later) using a `.deb
 3. Visit the [ntpd-rs releases page](https://github.com/pendulum-project/ntpd-rs/releases).
 4. Locate the desired release version.
 5. Copy the URL of the `.deb` file that matches your system architecture:
-    - `amd64` for x86-64 systems.
+    - `amd64` for x86-64/AMD64 systems.
     - `arm64` for ARM64 systems (e.g., Raspberry Pi 4, AWS Graviton).
     - Example: `https://github.com/pendulum-project/ntpd-rs/releases/download/v1.9.0/ntpd-rs_1.9.0-1_amd64.deb`
 6. Run the script as root (it will ask for confirmation before removing other services):  
@@ -53,7 +53,7 @@ Optional dry-run (shows actions without making changes):
 `sudo ./ntpd-rs <url> --dry-run`
 
 Optional SHA256 verification (recommended for security):  
-`sudo ./ntpd-rs <url> --sha256 <expected-hash>
+`sudo ./ntpd-rs <url> --sha256 <expected-hash>`
 
 Optional verbose output (shows all commands being executed):  
 `sudo ./ntpd-rs <url> --verbose`
